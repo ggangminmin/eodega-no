@@ -1,0 +1,22 @@
+{
+  "name": "tourism-app",
+  "version": "1.0.0",
+  "description": "Tourism data app competition",
+  "main": "naver-proxy.js",
+  "scripts": {
+    "start": "node naver-proxy.js",
+    "dev": "node -e \"const express = require('express'); const path = require('path'); const app = express(); app.use(require('cors')()); app.use(express.static('.')); app.listen(3000, () => console.log('Server on http://localhost:3000')); require('./naver-proxy.js');\"",
+    "test": "node tests/run-tests.js",
+    "test:watch": "node --watch tests/run-tests.js",
+    "test:e2e": "node tests/run-e2e.js",
+    "lint": "node ../scripts/lint-poc.js",
+    "build": "node ../scripts/build-poc.js",
+    "verify": "bash ../scripts/verify-task.sh"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {}
+}

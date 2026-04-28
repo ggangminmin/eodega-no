@@ -1,0 +1,26 @@
+{
+  "name": "tourism-app-harness",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "prepare": "node scripts/prepare-husky.js",
+    "install:hooks": "node scripts/install-hooks.js",
+    "precommit:guard": "node scripts/husky-pre-commit.js",
+    "commitmsg:guard": "node scripts/husky-commit-msg.js",
+    "lint-staged:guard": "node scripts/run-staged-guards.js",
+    "sync:poc": "node scripts/sync-poc-from-worktree.js",
+    "verify:task": "node scripts/verify-task.js",
+    "test": "npm --prefix poc test",
+    "test:watch": "npm --prefix poc run test:watch",
+    "test:e2e": "npm --prefix poc run test:e2e"
+  },
+  "lint-staged": {
+    "*": [
+      "node scripts/run-staged-guards.js"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10"
+  }
+}

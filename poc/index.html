@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>어데가노 · 부산 여행 매칭</title>
+  <meta name="description" content="부산 여행 정보를 취향과 동선에 맞춰 하나의 코스로 정리하는 어데가노 POC" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🗺</text></svg>" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<!-- ================ SITE HEADER ================ -->
+<header class="site">
+  <div class="hdr-inner">
+    <div class="brand" onclick="showScreen('home')" aria-label="어데가노 홈으로 이동">
+      <img class="brand-mark" src="assets/app_icon.png" alt="" width="64" height="42" />
+      <div>
+        <div class="brand-title">어데가노</div>
+        <div class="brand-sub">부산 여행의 모든 것</div>
+      </div>
+    </div>
+    <div class="hdr-search">
+      <svg width="16" height="16" fill="none" stroke="#8A95AE" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+      <input id="site-search" placeholder="해운대, 감천문화마을, 돼지국밥...">
+    </div>
+    <div class="hdr-right">
+      <a href="#" onclick="showCourse(); return false;">내 코스</a>
+      <a href="#" onclick="showSaved(); return false;">저장함 <span id="saved-count"></span></a>
+      <button class="btn-login" id="btn-login">로그인</button>
+      <div class="user-avatar" id="user-avatar" title="로그아웃" style="display:none"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ================ NAV TABS (shared) ================ -->
+<nav class="tabs">
+  <div class="tabs-inner">
+    <div class="tab active" data-screen="home" onclick="showScreen('home')">🏠 홈</div>
+    <div class="tab" data-category="attraction" onclick="showCategory('attraction')">🏞 관광지</div>
+    <div class="tab" data-category="food" onclick="showCategory('food')">🍜 음식점</div>
+    <div class="tab" data-category="culture" onclick="showCategory('culture')">🎭 문화시설</div>
+    <div class="tab" data-category="festival" onclick="showCategory('festival')">🎉 축제/행사</div>
+    <div class="tab" data-category="stay" onclick="showCategory('stay')">🛏 숙박</div>
+    <div class="tab" data-action="course" onclick="showCourse()">🧭 맞춤코스</div>
+    <div class="tab" data-action="random" onclick="showRandom()">🎲 랜덤추천</div>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- =========================== HOME =========================== -->
+<!-- ============================================================ -->
+<div class="screen active" id="screen-home">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-card">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-kicker">BUSAN TRAVEL GUIDE · 2026</div>
+          <h1>부산에서<br>어데가노?<br><em>맞춤 코스가 답이다.</em></h1>
+          <p>
+            공식 포털, 블로그, 예약 앱 세 개를 오가던 부산 1박 여행.<br>
+            <b>어데가노</b>는 당신의 취향과 동선을 읽어 단 하나의 코스로 정리합니다.
+          </p>
+          <div class="hero-ctas">
+            <button class="btn-primary" onclick="showCourse()">
+              맞춤 코스 시작하기
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            </button>
+            <button class="btn-ghost" onclick="showRandom()">
+              🎲 랜덤 추천
+            </button>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><div class="k">12,400+</div><div class="l">부산 스팟</div></div>
+            <div class="hero-stat"><div class="k">3 → 1</div><div class="l">앱 통합</div></div>
+            <div class="hero-stat"><div class="k">2min</div><div class="l">AI 코스 생성</div></div>
+          </div>
+        </div>
+        <div class="hero-blob">
+          <svg class="blob-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="grad1" cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"></stop>
+                <stop offset="30%" stop-color="#C8D9FF" stop-opacity="0.7"></stop>
+                <stop offset="70%" stop-color="#6B8FFF" stop-opacity="0.8"></stop>
+                <stop offset="100%" stop-color="#8A5CFF" stop-opacity="0.9"></stop>
+              </radialGradient>
+              <radialGradient id="grad2" cx="60%" cy="70%" r="60%">
+                <stop offset="0%" stop-color="#E0BFFF" stop-opacity="0.6"></stop>
+                <stop offset="100%" stop-color="#1D4ED8" stop-opacity="0"></stop>
+              </radialGradient>
+              <filter id="blur"><feGaussianBlur stdDeviation="8"></feGaussianBlur></filter>
+            </defs>
+            <!-- Main blob shape -->
+            <path d="M200,60 C280,60 340,120 340,200 C340,260 300,310 240,330 C180,350 110,330 80,270 C50,210 70,140 120,100 C150,75 175,60 200,60 Z" fill="url(#grad1)" opacity="0.9"></path>
+            <path d="M220,90 C290,100 310,170 290,230 C270,290 210,310 160,290 C110,270 90,210 120,160 C150,110 180,85 220,90 Z" fill="url(#grad2)" opacity="0.6"></path>
+            <!-- Torus-like ring -->
+            <ellipse cx="200" cy="200" rx="130" ry="40" stroke="#FFFFFF" stroke-width="1.5" fill="none" opacity="0.4" transform="rotate(-20 200 200)"></ellipse>
+            <ellipse cx="200" cy="200" rx="110" ry="28" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.3" transform="rotate(-20 200 200)"></ellipse>
+            <!-- Highlight -->
+            <ellipse cx="145" cy="135" rx="38" ry="22" fill="#FFFFFF" opacity="0.55" filter="url(#blur)"></ellipse>
+            <ellipse cx="260" cy="280" rx="30" ry="18" fill="#8A5CFF" opacity="0.3" filter="url(#blur)"></ellipse>
+          </svg>
+          <div class="hero-chip-float f1"><div class="chip-dot"></div>해운대 · 지금 25°C</div>
+          <div class="hero-chip-float f2"><div class="chip-dot"></div>오늘의 코스 · 2분 소요</div>
+          <div class="hero-chip-float f3"><div class="chip-dot"></div>1,240명 즐기는중</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+
+    <!-- WHY -->
+    <section class="why">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">WHY 어데가노</div>
+          <h2 class="section-title">부산 여행, 왜 이렇게 피곤했을까.</h2>
+          <p class="section-sub">한 번의 주말 여행을 위해 앱 3개, 탭 12개를 오가야 했습니다. 저희는 이 공백을 줄이고 싶었습니다.</p>
+        </div>
+      </div>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-num">01</div>
+          <div class="why-h">흩어진 정보</div>
+          <div class="why-p">공식 포털·블로그·예약 앱에 같은 정보가 세 번 흩어져 있습니다. 검색 시간이 실제 여행 시간보다 깁니다.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-num">02</div>
+          <div class="why-h">취향 없는 추천</div>
+          <div class="why-p">‘인기 TOP 10’은 모두 같은 곳입니다. 혼자 왔는지, 커플인지, 뭘 좋아하는지에 따라 답이 달라져야 합니다.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-num">03</div>
+          <div class="why-h">부산만의 언어</div>
+          <div class="why-p">"어데가노?"처럼 사투리는 다정하고, 로컬의 감성을 전달합니다. 앱이 부산 사람처럼 말해야 부산이 보입니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="cats">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">CATEGORY</div>
+          <h2 class="section-title">테마별 부산 여행</h2>
+        </div>
+      </div>
+      <div class="cat-grid">
+        <div class="cat-card" data-category="attraction" onclick="showCategory('attraction')">
+          <div class="cat-ico">🏞</div>
+          <div class="cat-name">관광지</div>
+          <div class="cat-count">불러오는 중</div>
+        </div>
+        <div class="cat-card" data-category="food" onclick="showCategory('food')">
+          <div class="cat-ico">🍜</div>
+          <div class="cat-name">음식점</div>
+          <div class="cat-count">불러오는 중</div>
+        </div>
+        <div class="cat-card" data-category="culture" onclick="showCategory('culture')">
+          <div class="cat-ico">🎭</div>
+          <div class="cat-name">문화시설</div>
+          <div class="cat-count">불러오는 중</div>
+        </div>
+        <div class="cat-card" data-category="festival" onclick="showCategory('festival')">
+          <div class="cat-ico">🎉</div>
+          <div class="cat-name">축제·행사</div>
+          <div class="cat-count">불러오는 중</div>
+        </div>
+        <div class="cat-card" data-category="stay" onclick="showCategory('stay')">
+          <div class="cat-ico">🛏</div>
+          <div class="cat-name">숙박</div>
+          <div class="cat-count">불러오는 중</div>
+        </div>
+        <div class="cat-card" onclick="showRandom()">
+          <div class="cat-ico">🎲</div>
+          <div class="cat-name">랜덤</div>
+          <div class="cat-count">룰렛으로</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOW POPULAR -->
+    <section class="now-popular">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">NOW TRENDING</div>
+          <h2 class="section-title">지금 가장 뜨는 부산</h2>
+        </div>
+        <a class="see-all" onclick="showCategory('all')">전체 보기 →</a>
+      </div>
+      <div class="place-grid">
+        <div class="place-card" onclick="showDetail('attraction-gukcheongsa')">
+          <div class="place-img">
+            <div class="place-rank">1</div>
+            <div class="place-badge">관광지</div>
+          </div>
+          <div class="place-body">
+            <div class="place-name">국청사(부산)</div>
+            <div class="place-loc">부산광역시 금정구 북문로 42</div>
+            <div class="place-quote">주말에는 관광객이 많이 찾습니다</div>
+          </div>
+        </div>
+        <div class="place-card" onclick="showDetail('attraction-songdo-sky')">
+          <div class="place-img">
+            <div class="place-rank">2</div>
+            <div class="place-badge">관광지</div>
+          </div>
+          <div class="place-body">
+            <div class="place-name">송도스카이파크</div>
+            <div class="place-loc">부산광역시 서구 암남공원로 181</div>
+            <div class="place-quote">한 번 앉으면 일어나기 싫어질 거예요</div>
+          </div>
+        </div>
+        <div class="place-card" onclick="showDetail('attraction-gamcheon')">
+          <div class="place-img">
+            <div class="place-rank">3</div>
+            <div class="place-badge">관광지</div>
+          </div>
+          <div class="place-body">
+            <div class="place-name">감천문화마을</div>
+            <div class="place-loc">부산광역시 사하구 감내2로 203</div>
+            <div class="place-quote">부산의 마추픽추 · 포토스팟 가득</div>
+          </div>
+        </div>
+        <div class="place-card" onclick="showDetail('attraction-haeundae')">
+          <div class="place-img">
+            <div class="place-rank">4</div>
+            <div class="place-badge">관광지</div>
+          </div>
+          <div class="place-body">
+            <div class="place-name">해운대 해수욕장</div>
+            <div class="place-loc">부산광역시 해운대구 해운대해변로 264</div>
+            <div class="place-quote">분위기 하나는 정말 기가 막힙니다</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-banner">
+      <div class="cta-grid">
+        <div>
+          <div class="cta-kicker">CUSTOM COURSE · 2 MIN</div>
+          <div class="cta-h">당신의 부산,<br>2분이면 준비됩니다.</div>
+          <div class="cta-p">혼자인지, 누구와 왔는지, 무엇을 좋아하는지. 딱 3가지만 알려주면 AI가 당일 동선부터 숙소까지 짜드립니다.</div>
+        </div>
+        <button class="cta-btn" onclick="showCourse()">
+          시작하기
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- FESTIVALS -->
+    <section class="festivals">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">FESTIVALS</div>
+          <h2 class="section-title">지금 열리는 축제</h2>
+        </div>
+        <a class="see-all" onclick="showCategory('festival')">전체 보기 →</a>
+      </div>
+      <div class="fest-grid">
+        <div class="fest-card" onclick="showDetail('festival-drone')">
+          <div class="fest-body">
+            <div class="fest-date">11.15 — 11.30</div>
+            <div class="fest-h">광안리<br>M 드론라이트쇼</div>
+          </div>
+        </div>
+        <div class="fest-card" style="background:linear-gradient(160deg,#8A5CFF 0%,#4F6FE8 60%,#1D4ED8 100%);" onclick="showDetail('festival-stellar')">
+          <div class="fest-body">
+            <div class="fest-date">12.01 — 12.25</div>
+            <div class="fest-h">STELLAR<br>HAEUNDAE</div>
+          </div>
+        </div>
+        <div class="fest-card" style="background:linear-gradient(160deg,#4F6FE8 0%,#0B1220 100%);" onclick="showDetail('festival-countdown')">
+          <div class="fest-body">
+            <div class="fest-date">12.31 — 01.01</div>
+            <div class="fest-h">COUNTDOWN<br>BUSAN 2026</div>
+          </div>
+        </div>
+        <div class="fest-card" style="background:linear-gradient(160deg,#1D4ED8 0%,#8A5CFF 60%,#E8BFFF 100%);" onclick="showDetail('festival-christmas')">
+          <div class="fest-body">
+            <div class="fest-date">12.15 — 12.25</div>
+            <div class="fest-h">크리스마스<br>빌리지 부산</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="foot-small">
+        <div><b style="color:var(--ink);">어데가노</b> · 2026 관광데이터 활용 공모전 출품작</div>
+        <div style="margin-top:4px;">Made in Busan · Powered by 한국관광공사 Tour API</div>
+      </div>
+      <div class="foot-small" style="text-align:right;">
+        이용약관 · 개인정보처리방침 · 문의
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- =========================== LIST =========================== -->
+<!-- ============================================================ -->
+<div class="screen" id="screen-list">
+
+  <section class="list-hero">
+    <div class="list-hero-card">
+      <div class="list-hero-l">
+        <div class="list-hero-ico">🏞</div>
+        <div>
+          <div class="list-hero-title">부산 관광지</div>
+          <div class="list-hero-sub">한국관광공사 공식 데이터 기반 · 실시간 업데이트</div>
+        </div>
+      </div>
+      <div class="list-hero-count">50개</div>
+    </div>
+  </section>
+
+  <div class="list-filters">
+    <button class="filter-chip" data-category="all" onclick="showCategory('all')"><span>전체</span></button>
+    <button class="filter-chip active" data-category="attraction" onclick="showCategory('attraction')"><span>관광지</span></button>
+    <button class="filter-chip" data-category="food" onclick="showCategory('food')"><span>음식점</span></button>
+    <button class="filter-chip" data-category="culture" onclick="showCategory('culture')"><span>문화시설</span></button>
+    <button class="filter-chip" data-category="festival" onclick="showCategory('festival')"><span>축제·행사</span></button>
+    <button class="filter-chip" data-category="stay" onclick="showCategory('stay')"><span>숙박</span></button>
+    <div style="flex:1;"></div>
+    <button class="filter-chip active" data-sort="popular" onclick="setSort('popular')"><span class="dot"></span>인기순</button>
+    <button class="filter-chip" data-sort="distance" onclick="setSort('distance')"><span>거리순</span></button>
+  </div>
+
+  <main class="list-main">
+    <div class="list-grid" id="list-grid"></div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="foot-small">어데가노 · 2026 관광데이터 활용 공모전 출품작</div>
+    </div>
+  </footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- =========================== DETAIL ========================= -->
+<!-- ============================================================ -->
+<div class="screen" id="screen-detail">
+
+  <section class="detail-hero">
+    <div class="d-hero-card">
+      <div class="d-hero-meta">
+        <div class="d-hero-badge">🛏 숙박 · 3성급</div>
+        <div class="d-hero-title">라메르호텔</div>
+        <div class="d-hero-loc">부산광역시 동구 고관로34번길 9</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="d-quick">
+    <div class="d-quick-card">
+      <div class="d-quick-ico">☎️</div>
+      <div>
+        <div class="d-quick-label">BOOKING</div>
+        <div class="d-quick-val">051-634-3001</div>
+      </div>
+    </div>
+    <div class="d-quick-card">
+      <div class="d-quick-ico">📍</div>
+      <div>
+        <div class="d-quick-label">LOCATION</div>
+        <div class="d-quick-val">부산 동구 초량동</div>
+      </div>
+    </div>
+    <div class="d-quick-card">
+      <div class="d-quick-ico">💙</div>
+      <div>
+        <div class="d-quick-label">SAVED BY</div>
+        <div class="d-quick-val">1,240명이 저장</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="d-info">
+    <div class="d-info-grid">
+      <div>
+        <div class="d-panel">
+          <div class="d-panel-h">🏨 숙박 정보</div>
+          <div class="d-info-rows">
+            <div class="d-info-row"><div class="d-info-key">체크인</div><div class="d-info-val">15:00</div></div>
+            <div class="d-info-row"><div class="d-info-key">체크아웃</div><div class="d-info-val">11:00</div></div>
+            <div class="d-info-row"><div class="d-info-key">주차</div><div class="d-info-val">가능</div></div>
+            <div class="d-info-row"><div class="d-info-key">식사</div><div class="d-info-val">한식·서양식·뷔페</div></div>
+          </div>
+        </div>
+
+        <div class="d-panel" style="margin-top:20px;">
+          <div class="d-panel-h">🛏 객실 정보</div>
+          <div class="d-rooms">
+            <div class="d-room">
+              <div class="d-room-img"></div>
+              <div>
+                <div class="d-room-name">프리미어 디럭스 트윈</div>
+                <div class="d-room-meta">2성인 · 베이커리 · 넓은 창</div>
+              </div>
+              <div class="d-room-price">75,000<small>원~</small></div>
+            </div>
+            <div class="d-room">
+              <div class="d-room-img"></div>
+              <div>
+                <div class="d-room-name">파트너 디럭스 더블</div>
+                <div class="d-room-meta">2성인 · 시티뷰</div>
+              </div>
+              <div class="d-room-price">75,000<small>원~</small></div>
+            </div>
+            <div class="d-room">
+              <div class="d-room-img"></div>
+              <div>
+                <div class="d-room-name">프리미어 디럭스 더블</div>
+                <div class="d-room-meta">2성인 · 킹베드</div>
+              </div>
+              <div class="d-room-price">75,000<small>원~</small></div>
+            </div>
+            <div class="d-room">
+              <div class="d-room-img"></div>
+              <div>
+                <div class="d-room-name">디럭스 투윈</div>
+                <div class="d-room-meta">2성인 · 2인 · 넓은 창</div>
+              </div>
+              <div class="d-room-price">80,000<small>원~</small></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-quote">
+          <div class="d-quote-k">📣 부산 로컬 한마디</div>
+          <div class="d-quote-t">"한 번 맛보면 반하게 될 거예요"</div>
+        </div>
+      </div>
+
+      <aside class="d-side">
+        <div class="d-panel" style="padding:18px;">
+          <div class="d-panel-h" style="margin-bottom:12px;">📍 위치</div>
+          <div class="d-map">
+            <div class="d-map-pin"></div>
+          </div>
+          <div style="font-size:12px; color:var(--muted); margin-top:10px; line-height:1.5;">
+            부산광역시 동구 고관로34번길 9
+          </div>
+        </div>
+
+        <div class="d-contact-card">
+          <div class="d-contact-h">오늘의 최저가</div>
+          <div class="d-contact-t">₩75,000<span style="font-size:13px; opacity:0.75; font-weight:500;"> / 1박</span></div>
+          <button class="d-contact-btn">예약하기 →</button>
+        </div>
+
+        <div class="d-panel">
+          <div class="d-panel-h">🔍 근처 추천 장소</div>
+          <div style="display:grid; gap:10px;">
+            <div style="display:flex; gap:12px; align-items:center;">
+              <div style="width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,#E8F0FF,#D6E4FF); flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:700;">파라운드호텔 서면점</div>
+                <div style="font-size:11px; color:var(--muted);">부산 부산진구 · 280m</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <div style="width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,#E8F0FF,#D6E4FF); flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:700;">로코코모텔 부산서면</div>
+                <div style="font-size:11px; color:var(--muted);">부산 부산진구 · 420m</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <div style="width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,#E8F0FF,#D6E4FF); flex-shrink:0;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:700;">롯데호텔 부산</div>
+                <div style="font-size:11px; color:var(--muted);">부산 부산진구 · 640m</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="foot-small">어데가노 · 2026 관광데이터 활용 공모전 출품작</div>
+    </div>
+  </footer>
+</div>
+
+<!-- Floating screen switcher -->
+<div class="screen-switcher">
+  <button class="switch-btn active" data-s="home" onclick="showScreen('home')">홈</button>
+  <button class="switch-btn" data-s="list" onclick="showScreen('list')">리스트</button>
+  <button class="switch-btn" data-s="detail" onclick="showScreen('detail')">상세</button>
+</div>
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
