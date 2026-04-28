@@ -1,13 +1,6 @@
 {
-  "version": 2,
-  "name": "eodega-no",
-  "builds": [
-    {
-      "src": "poc/index.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/poc/$1" }
+  "outputDirectory": "poc",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/$1" }
   ]
 }
